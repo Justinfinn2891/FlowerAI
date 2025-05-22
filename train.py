@@ -18,7 +18,7 @@ class modelForPredictions(nn.Module):
         information_x = self.out(information_x)
         return information_x
 
-torch.manual_seed(41)
+torch.manual_seed(51)
 model = modelForPredictions()
 
 datacapture = './dataset/iris.csv'
@@ -46,10 +46,10 @@ y_test = torch.LongTensor(y_test)
 
 #Set the criterion 
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=0.01) 
+optimizer = torch.optim.Adam(model.parameters(), lr=0.05) 
 
 losses = []
-epoch = 100
+epoch = 300
 
 for i in range(epoch):
     y_pred = model.forward(X_train) #Get predicted results
@@ -62,6 +62,37 @@ for i in range(epoch):
     loss.backward()
     optimizer.step()
 
+plt.plot(range(epoch), losses)
+plt.ylabel("Loss/error")
+plt.xlabel("Epoch")
+plt.show()
+
+with torch.no_grad(): 
+    y_eval = model.forward(X_test)
+    loss = criterion(y_eval, y_test)
+
+correct = 0 
+with torch.no_grad():
+    for i, data in enumerate(X_test):
+        y_val = model.forward(data)
+        
+        results = y_test[i]
+        
+        if y_test[i] == 0:
+            results = "Setosa"
+        if y_test[i] == 1:
+            results = "Versicolor"
+        if y_test[i] == 2:
+            results = "Virginica"
+        print(f'{i + 1}.) {str(y_val)} and {results}')
+        if y_val.argmax().item() == y_test[i]:
+            correct += 1
+
+print(f'We have {correct} correct')
+torch.save(model.state_dict(), 'flowers_AI')
+
+new_model = modelForPredictions()
+new_model.load_state_dict(torch.load('flowers_AI'))
 plt.plot(range(epoch), losses)
 plt.ylabel("Loss/error")
 plt.xlabel("Epoch")
